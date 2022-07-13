@@ -1,0 +1,55 @@
+[user]
+	name = Denis Dechev
+	email = denisde4ev@vivaldi.net
+
+[init]
+	defaultBranch = master
+
+[alias]
+	stat = status -s
+	stat-tracked = stat -uno
+	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
+	stage = add -v
+	pull = pull -v
+	fetch = fetch -v
+	commit = commit -v
+	unstage = restore --staged --
+	unstage2 = reset HEAD --
+	log-last = log -1 HEAD
+	log-short = log --all --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
+	undo-1commit = reset HEAD~1 --mixed
+	cleanout-force = !git clean -df && git checkout -- .
+	diff-staged = diff --cached
+	diff-staged = diff --staged
+	delete-branch = update-ref -d
+	branch-new-clear = checkout --orphan
+# delete curent commit / "remove first commit"  = git 
+
+	# https://betterdev.blog/handy-git-aliases/ :
+	log-merge-span  = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
+	log-merge-log   = "!git ls `git log-merge-span .. $1`"
+	log-merge-diff  = "!git diff `git log-merge-span ... $1`"
+
+#	uncommit = reset --soft HEAD~1
+#	unmerge  = reset --hard ORIG_HEAD
+
+	# src: https://github.com/thezeroalpha/dotfiles/blob/master/git/gitconfig
+	log-authors = !git log --all --format='%cN <%cE>' | sort -u
+	url       = "!f(){  git remote get-url \"${1:-origin}\"                              ;};f"
+	url-ssh   = "!f(){  git url \"$1\" | sed -E 's|^https?://([^/]+)/(.+)|git@\\1:\\2|'  ;};f"
+	url-https = "!f(){  git url \"$1\" | sed -E 's|^git@([^:]+):|https://\\1/|'          ;};f"
+
+
+	test = "!printf %s\\\\n 1; echo 2"
+
+	# ref: https://www.reddit.com/r/ProgrammerHumor/comments/v9ycjv/the_best_gift_for_an_intern/ic0qbyv?utm_medium=android_app&utm_source=share&context=3
+	mug = "!printf %s\\\\n '' '         {' '      {   }' '       }_{ __{' '    .-{   }   }-.' '   (   }     {   )' \"   |\\`-.._____..-'|\" '   |             ;--.' '   |            (__  \\' '   |             | )  )' '   |             |/  /' '   |             /  /' '   |            (  /' \"   \\\\             y'\" \"    \\`-.._____..-'\""
+
+
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+
+[core]
+	excludesFile = ~/.config/.gitignore
