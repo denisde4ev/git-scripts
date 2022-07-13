@@ -1,0 +1,1 @@
+/^/ https://github.com/denisde4ev/sudo.sh/raw/master
