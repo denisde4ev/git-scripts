@@ -17,6 +17,7 @@ case $1 in --help)
 		"  link folders from pat='$pat' to '\$PWD'='$PWD'/" \
 	;
 	exit
+	;;
 -i)
 	shift
 	interactive=''

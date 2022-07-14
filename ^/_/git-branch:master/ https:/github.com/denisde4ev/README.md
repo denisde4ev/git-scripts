@@ -7,7 +7,7 @@ This directory exists because sometimes
 	)</p>
 </details>,
 but acsessing files inside that folder
-must come from master<details open>
+must come from master<details>
 	<summary>or another branch</summary>
 	<p>(
 	oh another 4 nested dirs for every new branch 1 symlink for every repo.<br>
