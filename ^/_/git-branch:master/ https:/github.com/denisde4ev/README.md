@@ -1,3 +1,9 @@
+
+I'm the master of illusion<br>
+Welcome to my mad delusion<br>
+ref: /\^/\ https://github.com/denisde4ev/lyrics-to-type/blob/master/song-master-of-illusion#L7_L8 <br>
+
+
 This directory exists because sometimes
 <details open>
 	<summary>the symlink must point to the repo</summary>
