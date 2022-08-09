@@ -1,7 +1,3 @@
-[user]
-	name = pc57
-	email = -
-
 [init]
 	defaultBranch = master
 
@@ -12,7 +8,6 @@
 	stat-tracked = stat -uno
 	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
 	stage = add -v
-	pull = pull -v
 	fetch = fetch -v
 	commit = commit -v
 	unstage = restore --staged --
