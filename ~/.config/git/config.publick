@@ -1,11 +1,13 @@
 [user]
-	name = Denis Dechev
-	email = denisde4ev@vivaldi.net
+	name = pc57
+	email = -
 
 [init]
 	defaultBranch = master
 
 [alias]
+	add-alluntracked = !git add $(git ls-files -o --exclude-standard)
+	add-alltracked = add -u
 	stat = status -s
 	stat-tracked = stat -uno
 	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
