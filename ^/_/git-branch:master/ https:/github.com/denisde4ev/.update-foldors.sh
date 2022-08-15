@@ -41,7 +41,7 @@ ln_it() {
 		printf %s\\n "link $j already exists." >&2
 		return
 	}
-	ln -snT -v${interactive+i} -- "$1" ./"$j"
+	ln -snT -v${interactive+i} -- ".../$j/raw/master" ./"$j"
 }
 
 
