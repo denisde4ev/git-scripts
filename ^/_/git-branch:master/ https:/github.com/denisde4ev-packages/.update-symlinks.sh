@@ -1,51 +1,58 @@
 #!/bin/sh
 
 
+unset ghuser
 
-
-echo >&2 'WARNING: THIS IS OLD SCRIPT (should still woiks) !'
-YN_confirm n 'run anyway?'
-
-# TODO: REPLACE THIS SCRIPT FILE WITH ../denisde4ev-packages/.update-symlinks
-
-
-
-
-
-
-
+set -eu
 cd "${0%/*}"
 
-pat='/^/ https://github.com/denisde4ev/*/raw/master'
+pat='/^/ https://github.com/$ghuser/*/raw/master'
 
 
 echo >&2 "$0: not tested but sh. should work.. I hope"
 echo >&2
 
-	unset interactive
+unset interactive
 case $1 in --help)
 	case $0 in ./*) o=$0;; *) o=${0##*/}; esac
 
 	printf %s\\n \
-		"Usage: $o [-i] [... repo name or path]" \
+		"Usage: $o [-i] [repo name or path]..." \
 		"  link folders from pat='$pat' to '\$PWD'='$PWD'/" \
 	;
 	exit
-	;;
--i)
-	shift
-	interactive=''
 esac
 
 
+
+die() {
+	printf %s\\n " x> %s" "$1"
+	exit "${2-2}"
+}
+
+
 case $PWD in 
-'/^/_/git-branch:master/ https:/github.com/denisde4ev') ;;
-'/^/_/git-branch:master/ https://github.com/denisde4ev') ;;
+"/^/_/git-branch:master/ https:/github.com/"[!/]*/[!/]*)  die "err 1" 1;;
+"/^/_/git-branch:master/ https://github.com/"[!/]*/[!/]*) die "err 2" 1;;
+"/^/_/git-branch:master/ https:/github.com/"*)  pat=${PWD##*/;;
+"/^/_/git-branch:master/ https://github.com/"*) pat=${PWD##*/;;
+
+## not used for now, its plan for in the future:
+#"/_/?branch=master/ https://github.com/"*) pat=${PWD##*/;;
+#'/_/ https://github.com/'*'/#branch=master/') pat=${PWD##*/;;
+
+# huuum... why not just use: (WHY DIDN'T I THINK ABOUT THIS EARLIER :'( ?!)
+# huuum... why not just use: (WHY DIDN'T I THINK OF THIS EARLIER :'( ?!)
+"/^/ https://github.com/denisde4ev/!{repo}!/tree/master/") pat=${PWD##*/;;
+
+# for example: /_/\ https://github.com/denisde4ev/thepkg/#/branch=master/') pat=${PWD##*/;;
 *)
-	case ${interactive+i} in
-		i) YN_confirm y "Do you realy want to create symlinks in \$PWD='$PWD'" || exit;;
-		*) printf %s "warning: \$PWD='$PWD' not as expected" >&2;;
-	esac
+	printf %s\\n%s >&2 \
+		'Can not auto detect GH user, please provide username" \
+		" (empty for basename of PWD) (or ^C to quit): ' \
+	;
+	read -r pat
+	case pat in ^C) exit 1; esac # I did not ment you to type it, but I will accept it anyway.
 esac
 
 ln_it() {
@@ -71,7 +78,7 @@ case $# in 0)
 	}
 	
 	for i in $pat; do
-		ln_it "$i"
+		ln_it "$i" || :
 	done
 	exit
 esac
@@ -107,7 +114,7 @@ for i; do
 				|| continue
 			esac
 		;;
-		*) i="/^/ https://github.com/denisde4ev/$i/raw/master";;
+		*) i="/^/ https://github.com/$ghuser/$i/raw/master";;
 	esac
 
 	[ -d "$i/.git" ] || {
