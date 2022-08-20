@@ -1,1 +1,1 @@
-/^/_/git-branch:master/ https://github.com/denisde4ev/shrc
+/^/ https://github.com/denisde4ev/shrc/tree/master
