@@ -1,8 +1,27 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 [init]
 	defaultBranch = master
 
 [alias]
+	branch-remote-delete = "!f(){  git push origin :\"${1?'specify braranch to delete'}\"  ;};f" # not tested
+
 	stat = status -s
+	stat-hash = show --name-status # todo: how to remove commit message at begining
 	stat-tracked = stat -uno
 	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
 	stage = add -v
@@ -11,7 +30,8 @@
 	unstage = restore --staged --
 	unstage2 = reset HEAD --
 	log-last = log -1 HEAD
-	log-short = log --all --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
+	log-short = log --all --author-date-order --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
+	log-short-local = log --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
 	undo-1commit = reset HEAD~1 --mixed
 	cleanout-force = !git clean -df && git checkout -- .
 	diff-staged = diff --cached
@@ -48,3 +68,4 @@
 
 [core]
 	excludesFile = ~/.config/.gitignore
+
