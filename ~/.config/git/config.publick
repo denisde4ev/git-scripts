@@ -68,4 +68,5 @@
 
 [core]
 	excludesFile = ~/.config/.gitignore
+	sshCommand = ssh -F /etc/ssh/ssh_config
 
