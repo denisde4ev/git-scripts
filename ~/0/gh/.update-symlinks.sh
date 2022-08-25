@@ -41,6 +41,7 @@ esac
 case $PWD in 
 '/^/_/git-branch:master/ https:/github.com/denisde4ev') ;;
 '/^/_/git-branch:master/ https://github.com/denisde4ev') ;;
+'/~/0/gh') ;;
 *)
 	case ${interactive+i} in
 		i) YN_confirm y "Do you realy want to create symlinks in \$PWD='$PWD'" || exit;;
@@ -91,7 +92,7 @@ esac
 YN() {
 	case ${interactive+i} in
 		i) YN_confirm --printf y %s\\n "$1." "Do you want to link it?";;
- 		*) printf %s\\n "$1" >&2; return 6;; # just a note: exit code 5 is when YN_confirm can't read input
+ 		*) printf %s\\n "$1" >&2; return 6;; # just a note: exit code 5 is when YN_confirm can't read input #fix'
 	esac
 }
 
