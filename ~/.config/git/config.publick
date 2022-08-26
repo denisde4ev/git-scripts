@@ -19,7 +19,8 @@
 
 [alias]
 	branch-remote-delete = "!f(){  git push origin :\"${1?'specify braranch to delete'}\"  ;};f" # not tested
-
+	add-alluntracked = !git add $(git ls-files -o --exclude-standard)
+	add-alltracked = add -u
 	stat = status -s
 	stat-hash = show --name-status # todo: how to remove commit message at begining
 	stat-tracked = stat -uno
