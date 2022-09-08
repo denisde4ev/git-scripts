@@ -22,7 +22,8 @@
 	add-alluntracked = !git add $(git ls-files -o --exclude-standard)
 	add-alltracked = add -u
 	stat = status -s
-	stat-hash = show --name-status # todo: how to remove commit message at begining
+	stat-commit = show --name-status --format=
+	stat-hash   = stat-commit
 	stat-tracked = stat -uno
 	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
 	stage = add -v
@@ -70,4 +71,3 @@
 [core]
 	excludesFile = ~/.config/.gitignore
 	sshCommand = ssh -F /etc/ssh/ssh_config
-
