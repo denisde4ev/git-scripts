@@ -1,21 +1,14 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 [init]
 	defaultBranch = master
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+[core]
+	excludesFile = ~/.config/.gitignore
+	sshCommand = ssh -F /etc/ssh/ssh_config
+[merge]
+	ff = false
 
 [alias]
 	branch-remote-delete = "!f(){  git push origin :\"${1?'specify braranch to delete'}\"  ;};f" # not tested
@@ -24,9 +17,11 @@
 	stat = status -s
 	stat-commit = show --name-status --format=
 	stat-hash   = stat-commit
+	log-stat-sed = "!f(){ git stat-commit \"$@\" | sed -Ee 's/^([A-Z]{1,2})\\t/\\1 /'; };f"
 	stat-tracked = stat -uno
 	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
 	stage = add -v
+	pull = pull -v
 	fetch = fetch -v
 	commit = commit -v
 	unstage = restore --staged --
@@ -62,13 +57,3 @@
 
 	# ref: https://www.reddit.com/r/ProgrammerHumor/comments/v9ycjv/the_best_gift_for_an_intern/ic0qbyv?utm_medium=android_app&utm_source=share&context=3
 	mug = "!printf %s\\\\n '' '         {' '      {   }' '       }_{ __{' '    .-{   }   }-.' '   (   }     {   )' \"   |\\`-.._____..-'|\" '   |             ;--.' '   |            (__  \\' '   |             | )  )' '   |             |/  /' '   |             /  /' '   |            (  /' \"   \\\\             y'\" \"    \\`-.._____..-'\""
-
-
-[color]
-	diff = auto
-	status = auto
-	branch = auto
-
-[core]
-	excludesFile = ~/.config/.gitignore
-	sshCommand = ssh -F /etc/ssh/ssh_config
