@@ -5,6 +5,7 @@
 	add-alluntracked = !git add $(git ls-files -o --exclude-standard)
 	add-alltracked = add -u
 	stat = status -s
+	stat-commit = show --name-status --format=
 	stat-tracked = stat -uno
 	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
 	stage = add -v
