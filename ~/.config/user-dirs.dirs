@@ -6,17 +6,17 @@
 # absolute path. No other format is supported.
 # 
 
-# XDG_HOME_DIR="$HOME/d" # "XDG_HOME_DIR is not part of the basedir spec" https://github.com/nojhan/liquidprompt/issues/420
+# XDG_HOME_DIR="$HOME/.local/d" # "XDG_HOME_DIR is not part of the basedir spec" https://github.com/nojhan/liquidprompt/issues/420
 
 
-XDG_DESKTOP_DIR="$HOME/d/ /Desktop"
-XDG_DOCUMENTS_DIR="$HOME/d/ /Documents"
-XDG_DOWNLOAD_DIR="$HOME/d"
-XDG_MUSIC_DIR="$HOME/d/ /Music"
-XDG_PICTURES_DIR="$HOME/d/ /Pictures"
-XDG_PUBLICSHARE_DIR="$HOME/d/ /XDG_PUBLICSHARE_DIR"
-XDG_TEMPLATES_DIR="$HOME/d/ /XDG_TEMPLATES_DIR"
-XDG_VIDEOS_DIR="$HOME/d/ /Videos"
+XDG_DESKTOP_DIR="$HOME/.local/d/ /Desktop"
+XDG_DOCUMENTS_DIR="$HOME/.local/d/ /Documents"
+XDG_DOWNLOAD_DIR="$HOME/.local/d"
+XDG_MUSIC_DIR="$HOME/.local/d/ /Music"
+XDG_PICTURES_DIR="$HOME/.local/d/ /Pictures"
+XDG_PUBLICSHARE_DIR="$HOME/.local/d/ /XDG_PUBLICSHARE_DIR"
+XDG_TEMPLATES_DIR="$HOME/.local/d/ /XDG_TEMPLATES_DIR"
+XDG_VIDEOS_DIR="$HOME/.local/d/ /Videos"
 
 XDG_DATA_HOME="$HOME/.local/share"
 XDG_CONFIG_HOME="$HOME/.config"
