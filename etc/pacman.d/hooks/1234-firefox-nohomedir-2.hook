@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = firefox
+
+[Action]
+Description = Firefox patch to have fake homedir
+When = PostTransaction
+Exec = /usr/bin/sed -e 's|^Exec=/usr/lib/firefox/firefox|Exec=/usr/bin/firefox|' /usr/share/applications/firefox.desktop --in-place
