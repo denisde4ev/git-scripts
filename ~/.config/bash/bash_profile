@@ -1,0 +1,37 @@
+#! /hint/bash
+#  bash_profile
+#
+
+B=${B:-$HOME/.config/bash/bashrc.d}
+
+if [ -z "${DISPLAY:-}" ] && [ "${XDG_VTNR:-0}" -eq 1 ]; then
+	[ -e ~/.cache/reboot-and-hibernate.sh ] && { ~/.cache/reboot-and-hibernate.sh || return; }
+	# SHLVL= startx
+	# SHLVL= \startplasma-waylan
+	#. "$B"/_env
+	. "$B"/_homedir-vars
+	case ${XDG_RUNTIME_DIR+x} in x)
+		export XAUTHORITY=${XDG_RUNTIME_DIR:?}/Xauthority
+	esac
+
+	#. "$B"/_env_wayland
+	[ -e /tmp/xauth-* ] && read -t 10 -p '10 seconds OR hit enter' _
+	(
+		unset EDITOR=
+		unset SHLVL=
+		XDG_SESSION_TYPE=wayland dbus-run-session startplasma-wayland # from Arch Wiki
+	)
+	# SHLVL= is personal preference
+	. "$B"/_main
+else
+	. "$B"/_main
+fi
+
+# case $(tty) in
+	# /dev/tty1) systemd-analyize;;
+	# /dev/tty1)
+		# alias p=poweroff r=reboot # h='?systemcly hybernate?'
+		# sleep .1 # wait to press Ctrl+C
+	# ;;
+# esac
+

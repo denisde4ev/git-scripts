@@ -1,0 +1,2 @@
+
+. "${B:=/~/.config/bash/bashrc.d}"/__main
