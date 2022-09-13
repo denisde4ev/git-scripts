@@ -1,27 +1,20 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 [init]
 	defaultBranch = master
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+
+[core]
+	excludesFile = ~/.config/.gitignore
+	sshCommand = ssh -F /etc/ssh/ssh_config
 
 [alias]
 	branch-remote-delete = "!f(){  git push origin :\"${1?'specify braranch to delete'}\"  ;};f" # not tested
 	add-alluntracked = !git add $(git ls-files -o --exclude-standard)
 	add-alltracked = add -u
 	stat = status -s
+	stat-diff = diff --name-status --format=
 	stat-commit = show --name-status --format=
 	stat-hash   = stat-commit
 	stat-tracked = stat -uno
@@ -34,7 +27,7 @@
 	log-last = log -1 HEAD
 	log-short = log --all --author-date-order --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
 	log-short-local = log --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
-	ls = grep  -l ''
+	ls = grep  -l '' # TODO: check if this also works: https://stackoverflow.com/a/15606995/19673199
 	undo-1commit = reset HEAD~1 --mixed
 	cleanout-force = !git clean -df && git checkout -- .
 	diff-staged = diff --cached
@@ -47,9 +40,13 @@
 	log-merge-span  = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
 	log-merge-log   = "!git ls `git log-merge-span .. $1`"
 	log-merge-diff  = "!git diff `git log-merge-span ... $1`"
+	isMerging = rev-parse -q --verify MERGE_HEAD
+	merge-ff = merge --ff-only
+	# _merge--allow-unrelated-histories = merge --allow-unrelated-histories
 
 #	uncommit = reset --soft HEAD~1
 #	unmerge  = reset --hard ORIG_HEAD
+
 
 	# src: https://github.com/thezeroalpha/dotfiles/blob/master/git/gitconfig
 	log-authors = !git log --all --format='%cN <%cE>' | sort -u
@@ -62,13 +59,3 @@
 
 	# ref: https://www.reddit.com/r/ProgrammerHumor/comments/v9ycjv/the_best_gift_for_an_intern/ic0qbyv?utm_medium=android_app&utm_source=share&context=3
 	mug = "!printf %s\\\\n '' '         {' '      {   }' '       }_{ __{' '    .-{   }   }-.' '   (   }     {   )' \"   |\\`-.._____..-'|\" '   |             ;--.' '   |            (__  \\' '   |             | )  )' '   |             |/  /' '   |             /  /' '   |            (  /' \"   \\\\             y'\" \"    \\`-.._____..-'\""
-
-
-[color]
-	diff = auto
-	status = auto
-	branch = auto
-
-[core]
-	excludesFile = ~/.config/.gitignore
-	sshCommand = ssh -F /etc/ssh/ssh_config
