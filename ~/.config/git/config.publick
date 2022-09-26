@@ -32,7 +32,9 @@
 	log-last = log -1 HEAD
 	log-short = log --all --author-date-order --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
 	log-short-local = log --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
-	ls = grep  -l '' # TODO: check if this also works: https://stackoverflow.com/a/15606995/19673199
+	ls = ls-tree --name-only HEAD
+	# neeed to be tested (does not seems to work as expected?):   ls2 = grep  -l ''
+	ls-full = ls-tree --name-only HEAD --full-tree -r
 	undo-1commit = reset HEAD~1 --mixed
 	cleanout-force = !git clean -df && git checkout -- .
 	diff-staged = diff --cached
