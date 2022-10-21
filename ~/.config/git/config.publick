@@ -30,6 +30,7 @@
 	unstage = restore --staged --
 	unstage2 = reset HEAD --
 	log-last = log -1 HEAD
+	log-hashes = log HEAD^..HEAD --pretty=format:"%H" # ment to be used in scripts # TODO: test it! seems to not log older commets when there was merge in the older commit
 	log-short = log --all --author-date-order --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
 	log-short-local = log --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
 	ls = ls-tree --name-only HEAD
