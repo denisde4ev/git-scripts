@@ -1,0 +1,69 @@
+[init]
+	defaultBranch = master
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+
+[core]
+	excludesFile = ~/.config/.gitignore
+	sshCommand = ssh -F /etc/ssh/ssh_config
+#[merge]
+#	ff = false # seems like `git pull` will not fast forwd with this config
+
+
+[alias]
+	branch-remote-delete = "!f(){  git push origin :\"${1?'specify braranch to delete'}\"  ;};f" # not tested
+	add-alluntracked = !git add $(git ls-files -o --exclude-standard)
+	add-alltracked = add -u
+	stat = status -s
+	stat-diff = diff --name-status --format=
+	stat-commit = show --name-status --format=
+	stat-hash   = stat-commit
+	log-stat-sed = "!f(){ git stat-commit \"$@\" | sed -Ee 's/^([A-Z]{1,2})\\t/\\1 /'; };f"
+	stat-tracked = stat -uno
+	#stat-tracked = "!git status --short | sed '/^[?][?]/ d; s/^...//' | xargs -r -d \\\\n git stat"
+	stage = add -v
+	pull = pull -v
+	fetch = fetch -v
+	commit = commit -v
+	unstage = restore --staged --
+	unstage2 = reset HEAD --
+	log-last = log -1 HEAD
+	log-hashes = log HEAD^..HEAD --pretty=format:"%H" # ment to be used in scripts # TODO: test it! seems to not log older commets when there was merge in the older commit
+	log-short = log --all --author-date-order --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
+	log-short-local = log --decorate --oneline --graph --pretty=format:\"%C(magenta)%h%Creset -%C(red)%d%Creset %s %C(dim green)(%cr) [%an]\"
+	ls = ls-tree --name-only HEAD
+	# neeed to be tested (does not seems to work as expected?):   ls2 = grep  -l ''
+	ls-full = ls-tree --name-only HEAD --full-tree -r
+	undo-1commit = reset HEAD~1 --mixed
+	cleanout-force = !git clean -df && git checkout -- .
+	diff-staged = diff --cached
+	diff-staged = diff --staged
+	delete-branch = update-ref -d
+	branch-new-clear = checkout --orphan
+# delete curent commit / "remove first commit"  = git 
+
+	# https://betterdev.blog/handy-git-aliases/ :
+	log-merge-span  = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
+	log-merge-log   = "!git ls `git log-merge-span .. $1`"
+	log-merge-diff  = "!git diff `git log-merge-span ... $1`"
+	isMerging = rev-parse -q --verify MERGE_HEAD
+	merge-ff = merge --ff-only
+	# _merge--allow-unrelated-histories = merge --allow-unrelated-histories
+
+#	uncommit = reset --soft HEAD~1
+#	unmerge  = reset --hard ORIG_HEAD
+
+
+	# src: https://github.com/thezeroalpha/dotfiles/blob/master/git/gitconfig
+	log-authors = !git log --all --format='%cN <%cE>' | sort -u
+	url       = "!f(){  git remote get-url \"${1:-origin}\"                              ;};f"
+	url-ssh   = "!f(){  git url \"$1\" | sed -E 's|^https?://([^/]+)/(.+)|git@\\1:\\2|'  ;};f"
+	url-https = "!f(){  git url \"$1\" | sed -E 's|^git@([^:]+):|https://\\1/|'          ;};f"
+
+
+	test = "!printf %s\\\\n 1; echo 2"
+
+	# ref: https://www.reddit.com/r/ProgrammerHumor/comments/v9ycjv/the_best_gift_for_an_intern/ic0qbyv?utm_medium=android_app&utm_source=share&context=3
+	mug = "!printf %s\\\\n '' '         {' '      {   }' '       }_{ __{' '    .-{   }   }-.' '   (   }     {   )' \"   |\\`-.._____..-'|\" '   |             ;--.' '   |            (__  \\' '   |             | )  )' '   |             |/  /' '   |             /  /' '   |            (  /' \"   \\\\             y'\" \"    \\`-.._____..-'\""
