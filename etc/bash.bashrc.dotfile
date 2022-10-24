@@ -1,7 +1,0 @@
-if [[ -e ~/.config/bash/bashrc && ! -e ~/.bashrc ]]; then
-	if [[ ! -e ~/.bash_profile && ${0##*/} = -* ]]; then
-		. ~/.config/bash/bash_profile
-	else
-		. ~/.config/bash/bashrc
-	fi
-fi
