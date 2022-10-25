@@ -1,0 +1,368 @@
+#!/bin/sh
+#!/bin/zsh
+# nonPOSIX: declare -A gitinfo
+
+case $(command -v git) in *__gitinfo_git_fn*) unalias git; esac
+
+
+
+#true || { # DEBUG
+#	# consider when on Linux and testing if will work for Busybox-w32+WSLgit
+#	mound --bind / /mnt/rootfs
+#	_git_test_misspath() {
+#		(cd "/mnt/rootfs/$PWD"; exec \git "$@")
+#	}
+#	alias git=_git_test_misspath
+#}
+
+
+# nonPOSIX: local -A c
+c_br=$(tput setaf 6)      # branch name color
+c_halt=$(tput setaf 5) # abnormal status color
+c_sha=$(tput setaf 3)   # sha color
+c_plus=$(tput setaf 2)   # revisions ahead color
+c_minus=$(tput setaf 1)    # revisions behind color
+c_equal=$(tput setaf 4)
+c_none=$(tput sgr0)
+
+
+# zsh src: https://github.com/jordanlewis/config/blob/482e1b33f152c810f082b0d767a66e1942d2fe08/zshprompt
+
+
+#declare -A gitinfo
+gitinfo_update() {
+	# gitinfo=()
+	case $PWD in */.git/*| */.git)
+		echo >&2 "We're inside a .git folder which is going to cause "
+		echo >&2 "problems for rev-parse"
+		return 1
+	esac
+	# gitinfo__dir=$(git rev-parse --git-dir 2>/dev/null) # does not detect worktree
+	gitinfo__dir=$(git rev-parse --git-common-dir 2>/dev/null)
+	case $?:$gitinfo__dir in 0:?*) ;; *)
+		gitinfo__msg=""
+		gitinfo__dir=""
+		return
+	esac
+	gitinfo__top=$(git rev-parse --show-toplevel)
+	gitinfo__bare=$(git rev-parse --is-bare-repository)
+	local branch_ref;
+	branch_ref=$(git symbolic-ref HEAD 2>/dev/null)
+	gitinfo__branch=${branch_ref##*/}
+	gitinfo__headname=${gitinfo__branch}
+	case $gitinfo__branch in
+	'')
+		#old: gitinfo__headname="${c_br}$(git name-rev --name-only HEAD)" # get hash probably?
+		gitinfo__headname=${c_br}$(git log -n 1 --pretty=format:"%H" HEAD | cut -c 0-16)
+		gitinfo__detached=true
+		;;
+	*)
+		gitinfo__detached=''
+	esac
+
+	# TODO: instead of true/false -> count them
+
+	# consider using `git status -s | cut -c 0-2`
+
+	case $(git ls-files "${gitinfo__top}" --modified) in ?*)
+		gitinfo__hasmodified=true
+	esac
+	if ! git diff --quiet --cached 2>/dev/null; then
+		gitinfo__hasmodifiedstaged=true
+	fi
+	case $(git ls-files -u) in ?*)
+		gitinfo__unmerged=true
+	esac
+	case $(git ls-files --others --exclude-standard) in ?*) # untracked
+		gitinfo__untracked=true
+	esac
+
+	case $gitinfo__branch in ?*)
+		local remote;remote=$(git config branch.${gitinfo__branch}.remote)
+		if [[ "$remote" != '' ]]; then
+			local merge;merge=$(git config branch.${gitinfo__branch}.merge)
+			merge=${merge##refs/heads/}
+			if [[ "$remote" != "." ]]; then
+				merge=$remote/$merge
+			fi
+			merge=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+			local behind ahead
+			behind=$(git rev-list ${gitinfo__branch}..$merge | wc -l)
+			ahead=$(git rev-list $merge..${gitinfo__branch} | wc -l)
+			# reset to master~1: master..origin/master has 1
+			# add commit to master: origin/master..master has 1
+			# add commit to master~1: both have 1
+			local tracking_msg=""
+			if [[ "$ahead" -eq 0 ]] && [[ "$behind" -eq 0 ]]; then
+				tracking_msg=$tracking_msg
+			else
+				if [[ 0 -lt "$ahead" ]]; then
+					tracking_msg=$tracking_msg"${c_plus}+$ahead"
+				fi
+				if [[ 0 -lt "$behind" ]]; then
+					tracking_msg=$tracking_msg"${c_minus}-$behind"
+				fi
+			fi
+			gitinfo__tracking_merge="${c_br}$merge"
+			gitinfo__tracking_msg=$tracking_msg
+		fi
+	esac
+	#gitinfo__headtaggit
+	local g=${gitinfo__dir}
+	if [ -d "$g/rebase-merge" ]; then
+		if [ -f "$g/rebase-merge/interactive" ]; then
+			gitinfo__op="rb -i"
+			gitinfo__rb_head=$(git name-rev --name-only $(cat "$g/rebase-merge/orig-head"))
+			gitinfo__rb_onto=$(git name-rev --name-only $(cat "$g/rebase-merge/onto"))
+			gitinfo__op_msg="${gitinfo__rb_onto}..${gitinfo__rb_head}"
+		else
+			gitinfo__op="rb -m"
+			gitinfo__rb_head=$(cat "$g/rebase-merge/head-name")
+			gitinfo__op_msg="on ${gitinfo__rb_head}"
+		fi
+	elif [ -d "$g/rebase-apply" ]; then
+		if [ -f "$g/rebase-apply/rebasing" ]; then
+			gitinfo__op="rb"
+		elif [ -f "$g/rebase-apply/applying" ]; then
+			gitinfo__op="am"
+		else
+			gitinfo__op="am/rb"
+		fi
+		gitinfo__op_msg="on ${gitinfo__headname}"
+	elif [ -f "$g/MERGE_HEAD" ]; then
+		gitinfo__op="mrg"
+		gitinfo__merge_head=$(cat "$g/MERGE_HEAD")
+		gitinfo__op_msg="$(git name-rev --name-only ${gitinfo__merge_head}) into ${gitinfo__headname}"
+	elif [ -f "$g/CHERRY_PICK_HEAD" ]; then
+		gitinfo__op="chrypck"
+		gitinfo__cp_head=$(cat "$g/CHERRY_PICK_HEAD")
+		gitinfo__op_msg="from $(git name-rev --name-only ${gitinfo__cp_head}) onto ${gitinfo__headname}"
+	elif [ -f "$g/BISECT_LOG" ]; then
+		gitinfo__op="bs"
+		gitinfo__bs_start=$(cat "$g/BISECT_START")
+		gitinfo__op_msg="from ${gitinfo__bs_start} on ${gitinfo__headname}"
+	else
+		case $gitinfo__detached in
+			'') gitinfo__op='';;
+			*)  gitinfo__op=dtch;;
+		esac
+		gitinfo__op_msg=${gitinfo__headname}
+		case $gitinfo__tracking_msg in ?*)
+			gitinfo__op_msg=$gitinfo__op_msg" ${gitinfo__tracking_msg} ${gitinfo__tracking_merge}"
+		esac
+	fi
+	case ${gitinfo__op} in
+		#on) gitinfo__op="${c_none}${gitinfo__op}";;
+		'') ;;
+		*)  gitinfo__op="${c_halt}${gitinfo__op}";;
+	esac
+	printf %s\\n gitinfo__msg="${gitinfo__op}${gitinfo__op:+${gitinfo__op_msg:+- }}${gitinfo__op_msg}" >&2 # DEBUG
+	( set -x; # DEB
+		gitinfo__op=${gitinfo__op}
+		: ${gitinfo__op:+x}
+		gitinfo__op_msg=${gitinfo__op_msg}
+		: ${gitinfo__op_msg:+x}
+		: ${gitinfo__op:+${gitinfo__op_msg:+x}}
+	)
+	gitinfo__msg="${gitinfo__op}${gitinfo__op:+${gitinfo__op_msg:+- }}${gitinfo__op_msg}"
+}
+
+# echo '<==> gitinfo_update'
+gitinfo_update
+# echo '<==>'
+
+# git_status() { # fn never used?
+# 	if [[ "${gitinfo__dir}" = '' ]]; then
+# 		return
+# 	else
+# 		printf %s " ${gitinfo__op} ${gitinfo__op_msg}"
+# 	fi
+# }
+
+
+trimparser_ltr() {
+	local trimparser_word_next pat
+
+	for pat; do
+		#case $pat in
+		#	\*\**) trimparser_word_new=${trimparser_word##$pat};;
+		#	*)     trimparser_word_new=${trimparser_word#$pat};;
+		trimparser_word_new=${trimparser_word##$pat}
+		#esac
+		case $trimparser_word_new in "$trimparser_word")
+			# printf %s\\n >&2 "trimparser_ltr: '$trimparser_word' does not match ($pat)"
+			return 1
+		esac
+		trimparser_word=$trimparser_word_new
+	done
+}
+
+git_path() {
+	case $gitinfo__dir in '')
+		# echo $(print -P %~)
+		case ${HOME:+x} in '') false;; *)
+		case $PWD in "$HOME"|"$HOME"/*)
+			printf %s "~${PWD#"$HOME"}"
+		;; *) false; esac;
+		esac  || {
+			printf %s "$PWD"
+		}
+		return
+	esac
+
+	case ${gitinfo__hasmodified:+x}:${gitinfo__hasmodifiedstaged:+x} in
+		x:*) color=$(tput setaf 1);;
+		:)   color=$(tput setaf 2);;
+		:x)  color=$(tput setaf 3);;
+	esac
+
+	local gitinfo__toprepo;gitinfo__toprepo=$gitinfo__top
+	local gitinfo__remainingpwd
+	gitinfo__remainingpwd=$(@ pwd) # wsl path
+	gitinfo__remainingpwd=${gitinfo__remainingpwd#"$gitinfo__top"}
+	gitinfo__remainingpwd=${gitinfo__remainingpwd#/}
+	local buf;buf=''
+
+	trimparser_word=$gitinfo__toprepo
+	local gh_link_begin link_end
+	unset gh_link_begin
+	if
+		if trimparser_ltr "*/ http:/" || trimparser_ltr "*/ http%25/"; then
+			trimparser_ltr "github.com/"
+		else
+			trimparser_ltr "*/ github.com/"
+		fi
+	then
+		gh_link_begin=$(
+			trimparser_word_=$trimparser_word # =user/repo/raw/branch
+			##printf %s\\n >&2 "=user/repo/raw/branch = $trimparser_word_" # DEBUG
+			if trimparser_ltr '*/raw/' || trimparser_ltr '*/blob/' || trimparser_ltr '*/tree/'; then
+				##printf %s\\n >&2 "=branch = $trimparser_word" # DEBUG
+				trimparser_word_=${trimparser_word_%"/$trimparser_word"}
+				##printf %s\\n >&2 "=user/repo/raw = $trimparser_word_" # DEBUG
+				trimparser_word_=${trimparser_word_%/*}
+				##printf %s\\n >&2 "=user/repo = $trimparser_word_" # DEBUG
+				trimparser_word=$trimparser_word_/tree/$trimparser_word # =user/repo/tree/branch
+				##printf %s\\n >&2 "=user/repo/tree/branch = $trimparser_word" # DEBUG
+			fi
+			# printf '\e]8;;%s\e\\' "copy:https://github.com/$trimparser_word"
+			printf '\e]8;;%s\e\\' "https://github.com/$trimparser_word"
+			#printf '[%s](' "https://github.com/$trimparser_word"
+		)
+		link_end=$(printf '\e]8;;\e\\\n')
+		#link_end=$(printf ')')
+
+
+		buf=$buf${buf:+/}${gh_link_begin}
+		{
+			case $trimparser_word in
+				denisde4ev/*) ;; # pointless to show when its me
+				*) buf=$buf${trimparser_word%%/*}/;; # ${trimparser_word%%/*}=username
+			esac
+
+			trimparser_word=${trimparser_word#*/}
+			#printf %s\\n >&2 "=repo/tree/branch = $trimparser_word" # DEBUG
+
+			#printf %s\\n >&2 "=repo = ${trimparser_word%%/*}" # DEBUG
+			buf=$buf${trimparser_word%%/*}
+		}
+		trimparser_word=${trimparser_word#*/}
+		##printf %s\\n >&2 "=tree/branch = $trimparser_word" # DEBUG
+		buf=${buf}${link_end}/${trimparser_word%/*}/${color}${trimparser_word#**/}$(tput sgr0)
+	else
+		trimparser_word=${gitinfo__toprepo##*/}
+		# underline the main repo name:
+		buf=$buf${buf:+/}$(tput smul)${color}${trimparser_word%%/*}$(tput sgr0)
+		##printf %s\\n >&2 "=git_top = $trimparser_word" # DEBUG
+		if trimparser_ltr '*/'; then
+			buf=$buf${buf:+${trimparser_word:+/}}$trimparser_word
+		else
+			buf=$buf${buf:+/}$trimparser_word
+		fi
+	fi
+	#( set -x;
+	#	gitinfo__remainingpwd=$gitinfo__remainingpwd
+	#	buf=$buf
+	#)
+	case $gitinfo__remainingpwd in *??????/*)
+		gitinfo__remainingpwd='**'/${gitinfo__remainingpwd##*/}
+	esac
+	buf=${buf}${gitinfo__remainingpwd:+/}$gitinfo__remainingpwd
+
+	printf %s "$buf"
+
+	#local root;root=${gitinfo__top}
+	# WTF:
+	# echo ${${${$(print -P %d)/${root}/${root:h}/${color}${root:t}$(tput setaf 6)}/${HOME}/\~/}/\/\//\/} # original line
+	# expended:
+	#printf %s \
+	#	${
+	#		${
+	#			${
+	#				$PWD
+	#				/$root
+	#				/${root:h}
+	#				/${color}${root:t}$(tput setaf 6)
+	#			}
+	#			/${HOME}
+	#			/\~
+	#			/
+	#		}
+	#		/\/\/
+	#		/\/
+	#	} \
+	#;
+	#echo
+}
+
+case ${0##*/} in *-prompt-*|*-prompt|git-*) ;; *) # only when it is sourced
+	case ${ZSH_VERSION+x} in
+	x)
+		gitinfo_zsh_preexec() {
+			case $2 in 'git '*|*[\ \;\&\|\\]"git "*) ;; *) return; esac
+
+			args=${2#*'git '}
+			case ${args%%" "*} in status|ls|ls-files|log|lg|shortlog|last|diff|diffstat|show) return; esac # Don't update if git status, git ls, etc.
+			gitinfo__do_update=1
+		}
+
+		gitinfo_zsh_precmd() {
+			case $gitinfo__do_update in 1)
+				gitinfo__do_update=0
+				gitinfo_update
+			esac
+		}
+
+		add-zsh-hook chpwd   gitinfo_update
+		add-zsh-hook preexec gitinfo_zsh_preexec
+		add-zsh-hook precmd  gitinfo_zsh_precmd
+
+		PS1='$(tput setaf 3)[%T$(tput setaf 6)%1(j.%%$(tput setaf 2)%j$(tput setaf 6).)%0(?..:$(tput setaf 1)%B%?%b)$(tput setaf 3)]$(tput setaf 6)%# %f'
+		RPS1='%100>..>$(tput setaf 6)%n%f%B@%b$(tput setaf 6)%m%f%B:%b%<<$(tput setaf 6)$(git_path)${gitinfo__msg}%b%k%f'
+		;;
+	*) # when not zsh / all other shells
+		case $(command -v git) in
+			'') printf %s\\n >&2 "is 'git' command in your path?";;
+			*/*)
+				__gitinfo_git_fn() {
+					\git "$@"
+					case $1 in status|ls|ls-files|log|lg|shortlog|last|diff|diffstat|show) return; esac # Don't update if git status, git ls, etc.
+					gitinfo_update
+				}
+				__gitinfo_cd_fn() {
+					\cd "$@" || return
+					gitinfo_update || {
+						printf %s\\n >&2 "gitinfo_update: status: $?"
+						return 0
+					}
+				}
+				true || alias \
+					git=__gitinfo_git_fn \
+					cd=__gitinfo_cd_fn \
+				;
+			;;
+			*) ;; ##printf %s\\n >&2 "warning: seems like current shell have already defined 'git' as function/alias?";;
+		esac
+	esac
+esac
+
