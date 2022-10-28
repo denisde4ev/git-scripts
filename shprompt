@@ -1,6 +1,13 @@
 #!/bin/sh
-#!/bin/zsh
+case $1 in -x) set -x; shift; esac
 # nonPOSIX: declare -A gitinfo
+
+if [ -d '/\.\C:\Windows' ] || ( cd C:/ 2>&- && [ "$PWD" = 'C:/' ] ); then
+	echo 1111111
+	_git_pwd_() { @ pwd; }
+else
+	_git_pwd_() { pwd; }
+fi
 
 case $(command -v git) in *__gitinfo_git_fn*) unalias git; esac
 
@@ -156,14 +163,14 @@ gitinfo_update() {
 		'') ;;
 		*)  gitinfo__op="${c_halt}${gitinfo__op}";;
 	esac
-	printf %s\\n gitinfo__msg="${gitinfo__op}${gitinfo__op:+${gitinfo__op_msg:+- }}${gitinfo__op_msg}" >&2 # DEBUG
-	( set -x; # DEB
-		gitinfo__op=${gitinfo__op}
-		: ${gitinfo__op:+x}
-		gitinfo__op_msg=${gitinfo__op_msg}
-		: ${gitinfo__op_msg:+x}
-		: ${gitinfo__op:+${gitinfo__op_msg:+x}}
-	)
+	#printf %s\\n gitinfo__msg="${gitinfo__op}${gitinfo__op:+${gitinfo__op_msg:+- }}${gitinfo__op_msg}" >&2 # DEBUG
+	# ( set -x; # DEB
+	# 	gitinfo__op=${gitinfo__op}
+	# 	: ${gitinfo__op:+x}
+	# 	gitinfo__op_msg=${gitinfo__op_msg}
+	# 	: ${gitinfo__op_msg:+x}
+	# 	: ${gitinfo__op:+${gitinfo__op_msg:+x}}
+	# )
 	gitinfo__msg="${gitinfo__op}${gitinfo__op:+${gitinfo__op_msg:+- }}${gitinfo__op_msg}"
 }
 
@@ -218,7 +225,7 @@ git_path() {
 
 	local gitinfo__toprepo;gitinfo__toprepo=$gitinfo__top
 	local gitinfo__remainingpwd
-	gitinfo__remainingpwd=$(@ pwd) # wsl path
+	gitinfo__remainingpwd=$(_git_pwd_) # wsl path
 	gitinfo__remainingpwd=${gitinfo__remainingpwd#"$gitinfo__top"}
 	gitinfo__remainingpwd=${gitinfo__remainingpwd#/}
 	local buf;buf=''
@@ -366,3 +373,6 @@ case ${0##*/} in *-prompt-*|*-prompt|git-*) ;; *) # only when it is sourced
 	esac
 esac
 
+case ${0##*/} in shprompt)
+	printf %s\\n "$(git_path) $gitinfo__msg"
+esac
