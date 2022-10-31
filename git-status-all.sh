@@ -13,7 +13,7 @@ unset logLvl2 logLvl3
 
 case $1 in
 --help)
-	printf %s\\n "Usage: ${0##*/} [--log-level=0..3 (default is 1)] [PATH]..."
+	printf %s\\n "Usage: ${0##*/} [--log-level=0..3 (default is 1)] [PATH]"
 	;;
 --log-level=*)
 	logLvl=${1#*=}
@@ -35,9 +35,19 @@ git_getLatestCommitHash() { git log -n 1 --pretty=format:"%H" "$@"; }
 git_getAllRemoteBranchWithHash() { git branch  --format='%(objectname) %(refname)' -r; }
 git_getAllBranchWithHash() {       git branch  --format='%(objectname) %(refname)' -a; }
 
+die() {
+	printf %s\\n "${0##*/}: $1" >&2
+	exit ${2-2}
+}
 
-case $# in 0)
-	set -- /^/\ https://github.com/denisde4ev/[a-zA-Z_]*/raw/*
+case $# in
+0)
+	;;
+1)
+	cd "$1" || exit
+	;;
+*)
+	die "too many arguments, see --help"
 esac
 set -f
 set -eu
@@ -46,11 +56,12 @@ set -eu
 errs=0
 
 uncommited=''
-reposDiffersFromRemote=''
+reposDiffersFromRemote_str=''
 
 
-for repoDir; do
-	${logLvl3+echo} ${logLvl3+:} >&2
+set +f;for repoDir in ./[a-zA-Z_]*/raw/*; do # note use PWD as root path to enshure no lose relative paths in `loop { cd ./foo; }` (test if neeeded?)
+	set -f
+	${logLvl3+echo} ${logLvl3+": begin loop for '$repoDir' :"} >&2
 	${logLvl3+pwd} >&2
 	cd -- "$repoDir" || {
 		continue
@@ -58,7 +69,7 @@ for repoDir; do
 	}
 	if ! [ -e .git ]; then # note: *.git* might not be a dir, for example when using `git worktree`
 		case ${logLvl1+x} in x)
-			printf %s\\n  >&2 "NOTE: not a git repo: $repoDir"
+			printf %s\\n  >&2 "NOTE: not a git repo: $repoDir" ""
 		esac
 		cd "$OLDPWD" || exit; continue
 	fi
@@ -98,25 +109,25 @@ for repoDir; do
 			####case ${logLvl5+x} in x)
 			####	printf %s\\n >&2 " @1@  PWD='$PWD'  OLDPWD='$OLDPWD'"
 			####esac
-			####cd "$OLDPWD" || exit; pwd; 
+			####cd "$OLDPWD" || exit; pwd;
 			continue
 		esac
 		case $remoteHash in
-			'') printf %s\\n >&2 "warning: can not git_getLatestCommitHash for branch '$remoteBranch' for: $repoDir";;  # warning is not a log, do not add `${logLvl?:+`
+			'') printf %s\\n >&2 "warning: can not git_getLatestCommitHash for branch '$remoteBranch' for: '$repoDir'";;  # warning is not a log, do not add `${logLvl?:+`
 			"$localHash") localFiles_noChange=$(( localFiles_noChange + 1 ));;
-			*)              localFiles_differ=$(( localFiles_differ   + 1 )); run_git_status=0; localFiles_differ_str="$localFiles_differ_str  $remoteBranch";;
+			*)              localFiles_differ=$(( localFiles_differ   + 1 )); run_git_status=0; localFiles_differ_str="'$localFiles_differ_str'  '$remoteBranch'";;
 		esac
 	done
 
 	case ${localFiles_differ}:${localFiles_noChange} in
 	0:0)
-		printf %s\\n >&2 "warning: can not detect any remote branches for: $repoDir"  # warning is not a log, do not add `${logLvl?:+`
+		printf %s\\n >&2 "warning: can not detect any remote branches for: '$repoDir'" ""  # warning is not a log, do not add `${logLvl?:+`
 		;;
 	0:*)
 		# all ok
 		;;
 	*)
-		reposDiffersFromRemote=${reposDiffersFromRemote}${reposDiffersFromRemote:+$NEW_LINE}"${repoDir}: ${localFiles_differ} repos differ:${NEW_LINE}$(git_getAllBranchWithHash)${NEW_LINE}"
+		reposDiffersFromRemote_str=${reposDiffersFromRemote_str}${reposDiffersFromRemote_str:+$NEW_LINE}"'${repoDir}': ${localFiles_differ_str} repos differ:${NEW_LINE}$(git_getAllBranchWithHash)${NEW_LINE}"
 		run_git_status=0
 	esac
 	#
@@ -133,17 +144,17 @@ done >&2
 
 printf %s\\n "" --------
 
-case ${uncommited:+x}:${reposDiffersFromRemote:+x} in
+case ${uncommited:+x}:${reposDiffersFromRemote_str:+x} in
 x:x)
-	printf %s\\n "" "$uncommited" "" "$reposDiffersFromRemote"
+	printf %s\\n "" "$uncommited" "" "$reposDiffersFromRemote_str"
 	;;
 *x*)
-	printf %s\\n "" "${uncommited}${reposDiffersFromRemote}"
+	printf %s\\n "" "${uncommited}${reposDiffersFromRemote_str}"
 	;;
 esac
 
 case $errs in 0) ;; *)
-	case "${uncommited:+$NEW_LINE}${reposDiffersFromRemote:+x}" in
+	case "${uncommited:+$NEW_LINE}${reposDiffersFromRemote_str:+x}" in
 		:x) printf \\n;;
 		x:|x:x) printf \\n\\n;;
 	esac
