@@ -1,4 +1,8 @@
 #!/bin/sh
+
+# this file origin zsh src: https://github.com/jordanlewis/config/blob/482e1b33f152c810f082b0d767a66e1942d2fe08/zshprompt
+
+
 case $1 in -x) set -x; shift; esac
 # nonPOSIX: declare -A gitinfo
 
@@ -31,9 +35,6 @@ c_plus=$(tput setaf 2)   # revisions ahead color
 c_minus=$(tput setaf 1)    # revisions behind color
 c_equal=$(tput setaf 4)
 c_none=$(tput sgr0)
-
-
-# zsh src: https://github.com/jordanlewis/config/blob/482e1b33f152c810f082b0d767a66e1942d2fe08/zshprompt
 
 
 #declare -A gitinfo

@@ -21,9 +21,9 @@ case ${2-} in -*) printf %s\\n >&2 'no opts, see --help'; return 2; esac
 # TODO: detect if PWD is git dir AND worktree
 
 
-git worktree add -d "$1" || return
+\git worktree add -d "$1" || return
 cd "$1" || return # yes, `cd` in main interactive shell
-git switch --orphan "${2-${1##*/}}" || return
+\git switch --orphan "${2-${1##*/}}" || return
 
 
 
